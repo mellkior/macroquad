@@ -44,6 +44,8 @@ async fn main() {
 
         if !game_over {
             let delta_time = get_frame_time();
+
+            // Check for user input.
             if is_key_down(KeyCode::Right) {
                 circle.x += circle.speed * delta_time;
             }
@@ -57,11 +59,11 @@ async fn main() {
                 circle.y -= circle.speed * delta_time;
             }
 
-            // Clamp X and Y to be within the screen
+            // Clamp X and Y to be within the screen.
             circle.x = clamp(circle.x, 0.0, screen_width());
             circle.y = clamp(circle.y, 0.0, screen_height());
 
-            // Generate a new square
+            // Generate a new square.
             if rand::gen_range(0, 99) >= 95 {
                 let size = rand::gen_range(16.0, 64.0);
                 squares.push(Shape {
@@ -73,18 +75,20 @@ async fn main() {
                 });
             }
 
-            // Move squares
+            // Move squares.
             for square in &mut squares {
                 square.y += square.speed * delta_time;
             }
 
-            // Remove squares below bottom of screen
+            // Remove squares below bottom of screen.
             squares.retain(|square| square.y < screen_height() + square.size);
 
+            // Check for collisions.
             if squares.iter().any(|square| circle.collides_with(square)) {
                 game_over = true;
             }
         } else {
+            // Display game over message.
             let text = "GAME OVER!";
             let text_dimensions = measure_text(text, None, 50, 1.0);
             draw_text(
@@ -95,6 +99,7 @@ async fn main() {
                 RED,
             );
 
+            // Restart game.
             if is_key_pressed(KeyCode::Space) {
                 squares.clear();
                 circle.x = screen_width() / 2.0;
@@ -103,7 +108,7 @@ async fn main() {
             }
         }
 
-        // Draw everything
+        // Draw shapes.
         draw_circle(circle.x, circle.y, circle.size / 2.0, YELLOW);
         for square in &squares {
             draw_rectangle(
