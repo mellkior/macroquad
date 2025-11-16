@@ -10,28 +10,47 @@ fn window_conf() -> Conf {
     }
 }
 
+struct Shape {
+    size: f32,
+    speed: f32,
+    x: f32,
+    y: f32,
+}
+
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut x = screen_width() / 2.0;
-    let mut y = screen_height() / 2.0;
+    const MOVEMENT_SPEED: f32 = 200.0;
+    rand::srand(miniquad::date::now() as u64);
+
+    let mut squares: Vec<Shape> = vec![];
+    let mut circle = Shape {
+        size: 32.0,
+        speed: MOVEMENT_SPEED,
+        x: screen_width() / 2.0,
+        y: screen_height() / 2.0,
+    };
 
     loop {
+        let delta_time = get_frame_time();
         clear_background(DARKPURPLE);
 
         if is_key_down(KeyCode::Right) {
-            x += 1.0;
+            circle.x += circle.speed * delta_time;
         }
         if is_key_down(KeyCode::Left) {
-            x -= 1.0;
+            circle.x -= circle.speed * delta_time;
         }
         if is_key_down(KeyCode::Down) {
-            y += 1.0;
+            circle.y += circle.speed * delta_time;
         }
         if is_key_down(KeyCode::Up) {
-            y -= 1.0;
+            circle.y -= circle.speed * delta_time;
         }
 
-        draw_circle(x, y, 16.0, YELLOW);
+        circle.x = clamp(circle.x, 0.0, screen_width());
+        circle.y = clamp(circle.y, 0.0, screen_height());
+
+        draw_circle(circle.x, circle.y, circle.size, YELLOW);
 
         next_frame().await
     }
