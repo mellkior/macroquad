@@ -201,7 +201,9 @@ async fn main() {
                 );
             }
             GameState::GameOver => {
-                // Display game over message.
+                if is_key_pressed(KeyCode::Space) {
+                    game_state = GameState::MainMenu;
+                }
                 let text = "GAME OVER!";
                 let text_dimensions = measure_text(text, None, 50, 1.0);
                 draw_text(
@@ -211,16 +213,6 @@ async fn main() {
                     50.0,
                     RED,
                 );
-
-                // Restart game.
-                if is_key_pressed(KeyCode::Enter) {
-                    squares.clear();
-                    bullets.clear();
-                    circle.x = screen_width() / 2.0;
-                    circle.y = screen_height() / 2.0;
-                    score = 0;
-                    game_state = GameState::Playing;
-                }
             }
         }
 
