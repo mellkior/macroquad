@@ -126,6 +126,10 @@ async fn main() {
                     });
                 }
 
+                if is_key_pressed(KeyCode::Escape) {
+                    game_state = GameState::Paused;
+                }
+
                 // Generate a new square.
                 if rand::gen_range(0, 99) >= 95 {
                     let size = rand::gen_range(16.0, 64.0);
@@ -183,7 +187,18 @@ async fn main() {
                 }
             }
             GameState::Paused => {
-                // TODO:
+                if is_key_pressed(KeyCode::Space) {
+                    game_state = GameState::Playing;
+                }
+                let text = "Paused";
+                let text_dimensions = measure_text(text, None, 50, 1.0);
+                draw_text(
+                    text,
+                    screen_width() / 2.0 - text_dimensions.width / 2.0,
+                    screen_height() / 2.0,
+                    50.0,
+                    WHITE,
+                );
             }
             GameState::GameOver => {
                 // Display game over message.
