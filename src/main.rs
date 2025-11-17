@@ -1,4 +1,5 @@
 use macroquad::{prelude::*, rand::ChooseRandom};
+use std::fs;
 
 struct Shape {
     size: f32,
@@ -24,11 +25,27 @@ impl Shape {
     }
 }
 
-#[macroquad::main("learning macroquad")]
+fn conf() -> Conf {
+    Conf {
+        window_title: String::from("learning macroquad"),
+        window_width: 1800,
+        window_height: 1200,
+        high_dpi: true,
+        fullscreen: false,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(conf)]
 async fn main() {
     const MOVEMENT_SPEED: f32 = 200.0;
     let colors: Vec<Color> = vec![RED, ORANGE, YELLOW, GREEN, BLUE];
     let mut game_over = false;
+
+    let mut score: u32 = 0;
+    let mut high_score: u32 = fs::read_to_string("highscore.dat")
+        .map_or(Ok(0), |i| i.parse::<u32>())
+        .unwrap_or(0);
 
     rand::srand(miniquad::date::now() as u64);
     let mut squares = vec![];
@@ -74,7 +91,7 @@ async fn main() {
                     y: circle.y,
                     speed: circle.speed * 2.0,
                     size: 5.0,
-                    color: BLACK,
+                    color: WHITE,
                     collided: false,
                 });
             }
@@ -87,7 +104,7 @@ async fn main() {
                     speed: rand::gen_range(50.0, 150.0),
                     x: rand::gen_range(size / 2.0, screen_width() - size / 2.0),
                     y: -size,
-                    color: *colors.choose().unwrap(),
+                    color: *colors.choose().unwrap_or(&RED),
                     collided: false,
                 });
             }
@@ -114,6 +131,10 @@ async fn main() {
 
             // Check for collisions of circle and squres.
             if squares.iter().any(|square| circle.collides_with(square)) {
+                // Write high score to disk if updated.
+                if score == high_score {
+                    fs::write("highscore.dat", high_score.to_string()).ok();
+                }
                 game_over = true;
             }
 
@@ -123,6 +144,9 @@ async fn main() {
                     if bullet.collides_with(square) {
                         bullet.collided = true;
                         square.collided = true;
+                        // Increase score based on size of square.
+                        score += square.size.round() as u32;
+                        high_score = high_score.max(score);
                     }
                 }
             }
@@ -144,6 +168,7 @@ async fn main() {
                 bullets.clear();
                 circle.x = screen_width() / 2.0;
                 circle.y = screen_height() / 2.0;
+                score = 0;
                 game_over = false;
             }
         }
@@ -164,6 +189,24 @@ async fn main() {
                 square.color,
             );
         }
+
+        // Draw scores.
+        draw_text(
+            format!("Score: {}", score).as_str(),
+            10.0,
+            35.0,
+            25.0,
+            WHITE,
+        );
+        let highscore_text = format!("High score: {}", high_score);
+        let text_dimensions = measure_text(highscore_text.as_str(), None, 25, 1.0);
+        draw_text(
+            highscore_text.as_str(),
+            screen_width() - text_dimensions.width - 10.0,
+            35.0,
+            25.0,
+            WHITE,
+        );
 
         next_frame().await
     }
