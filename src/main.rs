@@ -47,7 +47,7 @@ fn conf() -> Conf {
 async fn main() {
     const MOVEMENT_SPEED: f32 = 200.0;
     let colors: Vec<Color> = vec![RED, ORANGE, YELLOW, GREEN, BLUE];
-    let mut game_state = GameState::Playing;
+    let mut game_state = GameState::MainMenu;
 
     let mut score: u32 = 0;
     let mut high_score: u32 = fs::read_to_string("highscore.dat")
@@ -72,7 +72,26 @@ async fn main() {
 
         match game_state {
             GameState::MainMenu => {
-                // TODO:
+                if is_key_pressed(KeyCode::Escape) {
+                    std::process::exit(0);
+                }
+                if is_key_pressed(KeyCode::Space) {
+                    squares.clear();
+                    bullets.clear();
+                    circle.x = screen_width() / 2.0;
+                    circle.y = screen_height() / 2.0;
+                    score = 0;
+                    game_state = GameState::Playing;
+                }
+                let text = "Press space";
+                let text_dimensions = measure_text(text, None, 50, 1.0);
+                draw_text(
+                    text,
+                    screen_width() / 2.0 - text_dimensions.width / 2.0,
+                    screen_height() / 2.0,
+                    50.0,
+                    WHITE,
+                );
             }
             GameState::Playing => {
                 let delta_time = get_frame_time();
