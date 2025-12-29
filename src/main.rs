@@ -1,5 +1,7 @@
 use macroquad::audio::{PlaySoundParams, Sound, load_sound, play_sound, play_sound_once};
 use macroquad::experimental::animation::{AnimatedSprite, Animation};
+use macroquad::experimental::collections::storage;
+use macroquad::experimental::coroutines::start_coroutine;
 use macroquad::ui::{Skin, hash, root_ui};
 use macroquad::{prelude::*, rand::ChooseRandom};
 use macroquad_particles::{self as particles, AtlasConfig, ColorCurve, Emitter, EmitterConfig};
@@ -111,6 +113,31 @@ impl Resources {
             ui_skin,
         })
     }
+
+    pub async fn load() -> Result<(), macroquad::Error> {
+        let resources_loading = start_coroutine(async move {
+            let resources = Resources::new().await.unwrap();
+            storage::store(resources);
+        });
+
+        while !resources_loading.is_done() {
+            clear_background(BLACK);
+            let text = format!(
+                "Loading resources {}",
+                ".".repeat(((get_time() * 2.) as usize) % 4)
+            );
+            draw_text(
+                &text,
+                screen_width() / 2. - 160.,
+                screen_height() / 2.,
+                40.,
+                WHITE,
+            );
+            next_frame().await;
+        }
+
+        Ok(())
+    }
 }
 
 impl Shape {
@@ -166,9 +193,9 @@ fn particle_explosion() -> particles::EmitterConfig {
 async fn main() -> Result<(), macroquad::Error> {
     // Set asset directory path.
     set_pc_assets_folder("assets");
-
     // Load resources.
-    let resources = Resources::new().await?;
+    Resources::load().await?;
+    let resources = storage::get::<Resources>();
 
     const MOVEMENT_SPEED: f32 = 200.0;
     let colors: Vec<Color> = vec![RED, ORANGE, YELLOW, GREEN, BLUE];
