@@ -29,9 +29,10 @@ jobs:
 
       - name: Prepare Deployment Directory
         run: |
-          mkdir -p ./deploy
+          mkdir -p ./deploy/assets
           cp ./target/wasm32-unknown-unknown/release/learning-macroquad.wasm ./deploy/
           cp index.html ./deploy/
+          cp -r assets/ ./deploy/
 
       - name: Upload static files as artifact
         id: deployment
