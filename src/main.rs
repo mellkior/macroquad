@@ -1,3 +1,4 @@
+use macroquad::audio::{PlaySoundParams, load_sound, play_sound, play_sound_once};
 use macroquad::experimental::animation::{AnimatedSprite, Animation};
 use macroquad::{prelude::*, rand::ChooseRandom};
 use macroquad_particles::{self as particles, AtlasConfig, ColorCurve, Emitter, EmitterConfig};
@@ -90,6 +91,11 @@ fn particle_explosion() -> particles::EmitterConfig {
 async fn main() {
     // Set asset directory path.
     set_pc_assets_folder("assets");
+
+    // Load sounds.
+    let theme_music = load_sound("8bit-spaceshooter.ogg").await.unwrap();
+    let sound_explosion = load_sound("explosion.wav").await.unwrap();
+    let sound_laser = load_sound("laser.wav").await.unwrap();
 
     const MOVEMENT_SPEED: f32 = 200.0;
     let colors: Vec<Color> = vec![RED, ORANGE, YELLOW, GREEN, BLUE];
@@ -212,6 +218,15 @@ async fn main() {
     // Call this after loading all textures for efficient access.
     build_textures_atlas();
 
+    // Start the music.
+    play_sound(
+        &theme_music,
+        PlaySoundParams {
+            looped: true,
+            volume: 1.,
+        },
+    );
+
     loop {
         clear_background(BLACK);
 
@@ -289,6 +304,7 @@ async fn main() {
                         color: WHITE,
                         collided: false,
                     });
+                    play_sound_once(&sound_laser);
                 }
 
                 if is_key_pressed(KeyCode::Escape) {
@@ -359,6 +375,7 @@ async fn main() {
                                 }),
                                 vec2(square.x, square.y),
                             ));
+                            play_sound_once(&sound_explosion);
                         }
                     }
                 }
